@@ -1,0 +1,571 @@
+#!/bin/bash
+
+set -e
+
+#===========================================
+# Define common variables and functions.
+#===========================================
+
+#-------------------------------------------
+# Define variables.
+#
+# NDW_ROOT                    : NDW root directory.
+# NDW_VERSIONS_DIR            : NodeJS root directory per version.
+# NDW_DOWNLOADS_DIR           : NDW downloading directory.
+# NDW_NAME                    : NDW command name.
+# NODE_REPO_URL               : NodeJS repository URL.
+# NODE_VERSION_FILE           : NodeJS version file name.
+# NODE_GLOBAL_VERSION_FILE    : NodeJS global version file name.
+# NODE_BINARY_FILE_EXTENSION  : NodeJS binary archive file extension.
+# NODE_BINARY_FILE_FORMAT     : NodeJS binary file name format.
+# NODE_BINARY_URL_FORMAT      : NodeJS binary url format.
+#-------------------------------------------
+NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
+NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
+NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
+NDW_NAME=${0##*/}
+NODE_REPO_URL="https://github.com/nodejs/node"
+NODE_VERSION_FILE=".node-version"
+NODE_GLOBAL_VERSION_FILE="version"
+NODE_BINARY_FILE_EXTENSION="tar.gz"
+NODE_BINARY_FILE_FORMAT="node-%s-%s-%s.${NODE_BINARY_FILE_EXTENSION}"
+NODE_BINARY_URL_FORMAT="https://nodejs.org/dist/%s/%s"
+
+
+#-------------------------------------------
+# Output cat file
+#
+# 1 : The directory path.
+# 2 : File name
+#-------------------------------------------
+cat_file() {
+
+  local DIR_PATH="$1"
+  local FILE_NAME="$2"
+  echo -n "$([[ -e ${DIR_PATH}/${FILE_NAME} ]] && echo -n $(cat ${DIR_PATH}/${FILE_NAME} | tr -d '\n'))"
+
+}
+
+#-------------------------------------------
+# Output nearly kocal version file.
+#
+# 1 : The root directory.
+#-------------------------------------------
+find_local_version() {
+
+  local DIR_PATH="$1"
+  local NODE_VERSION="$(cat_file ${DIR_PATH} ${NODE_VERSION_FILE})"
+
+  # find node version file in parent directory
+  while [ -z "${NODE_VERSION}" -a "${DIR_PATH}" != '' ]
+  do
+    DIR_PATH="${DIR_PATH%/*}"
+    NODE_VERSION="$(cat_file ${DIR_PATH} ${NODE_VERSION_FILE})"
+  done
+
+  echo -n "${NODE_VERSION}"
+
+}
+
+#-------------------------------------------
+# Output nearly version file.
+#
+# 1 : The root directory.
+#-------------------------------------------
+find_version() {
+
+  local DIR_PATH="$1"
+  local NODE_VERSION="$(find_local_version ${DIR_PATH})"
+
+  # Empty version?
+  if [ -z "${NODE_VERSION}" -a -e "${NDW_ROOT}/${NODE_GLOBAL_VERSION_FILE}" ]; then
+
+    # using global version
+    NODE_VERSION="$(cat_file ${NDW_ROOT} ${NODE_GLOBAL_VERSION_FILE})"
+
+  fi
+
+  echo -n "${NODE_VERSION}"
+
+}
+
+#-------------------------------------------
+# Output file name of NodeJS binary
+#
+# 1 : Install version
+#-------------------------------------------
+node_binary_file() {
+
+  local INSTALL_VERSION="$1"
+  local OS_NAME=$(uname -s | tr '[:upper:]' '[:lower:]')
+  local ARCH_NAME=$(uname -m)
+  local USING_ARCH_NAME
+
+  # Convert arch name
+  case ${ARCH_NAME} in
+    x86_64)
+      USING_ARCH_NAME="x64"
+      ;;
+    x86)
+      USING_ARCH_NAME="x86"
+      ;;
+    *)
+      USING_ARCH_NAME=${ARCH_NAME}
+      ;;
+  esac
+
+  # Output file name
+  printf ${NODE_BINARY_FILE_FORMAT} ${INSTALL_VERSION} ${OS_NAME} ${USING_ARCH_NAME}
+
+}
+
+#-------------------------------------------
+# Output URL of NodeJS binary
+#
+# 1 : Install version
+#-------------------------------------------
+node_binary_url() {
+
+  local INSTALL_VERSION="$1"
+
+  # Output url
+  printf ${NODE_BINARY_URL_FORMAT} ${INSTALL_VERSION} $(node_binary_file ${INSTALL_VERSION})
+
+}
+
+#-------------------------------------------
+# Sort list of versions
+#
+# 1 : versions list
+#-------------------------------------------
+sort_versions() {
+
+  cat - | grep -E '^v\d.*\d$' --color=none | sed -E 's;^v;;g' | sort -t "." -k 1n -k 2n -k 3n | awk '{ print "v"$1 }'
+
+}
+
+#-------------------------------------------
+# Execute command in specified version.
+#
+# 1   : NodeJS version
+# 2   : Command name
+# 3.. : Command arguments
+#-------------------------------------------
+exec_command() {
+
+  local CURRENT_DIR=$(pwd)
+  local NODE_VERSION=$1
+
+  # Empty version?
+  if [[ -z ${NODE_VERSION} ]]; then
+    echo "No specify using NodeJS version."
+    exit 1
+  fi
+
+  # No installed specified version?
+  if [[ ! -e "${NDW_VERSIONS_DIR}/${NODE_VERSION}" ]]; then
+    echo "No installed specified version."
+    exit 1
+  fi
+
+  local EXEC_COMMAND=$2
+  local EXEC_COMMAND_ARGS="${@:3}"
+  local NODE_ROOT="${NDW_VERSIONS_DIR}/${NODE_VERSION}"
+  local NODE_BIN="${NODE_ROOT}/bin"
+
+  # execute commands
+  if [[ -e "${NODE_BIN}/${EXEC_COMMAND}" ]]; then
+    PATH="${NODE_BIN}:$PATH" "${NODE_BIN}/${EXEC_COMMAND}" ${EXEC_COMMAND_ARGS}
+  else
+
+    case ${EXEC_COMMAND} in
+    yarn)
+      echo "Please install yarn command."
+      echo ""
+      echo "    ndw install-yarn [<yarn version>]."
+      echo ""
+      ;;
+    *)
+      echo "Not found specified command."
+      ;;
+    esac
+ 
+    exit 1
+ 
+  fi
+
+}
+
+#===========================================
+# Usages.
+#===========================================
+
+#-------------------------------------------
+# View usage "ndw" options
+#-------------------------------------------
+usage_ndw() {
+
+  cat << EOF
+Usage: ${NDW_NAME} <command> [<options>]
+
+    install <version>               Install <version>
+    uninstall <version>             Uninstall <version>
+    local <version>                 Set the local application-specific NodeJS version
+    global <version>                Set the global NodeJS version
+    list                            List installed NodeJS versions or available NodeJS versions.
+    current                         Show using NodeJS version for exec command.
+    node                            Execute node command in current NodeJS version.
+    npm                             Execute npm command in current NodeJS version.
+    npx                             Execute npx command in current NodeJS version.
+    yarn                            Execute yarn command in current NodeJS version.
+    install-yarn [<yarn version>]   Install or upgrade yarn in current NodeJS version.
+EOF
+
+}
+
+#-------------------------------------------
+# View usage "nodew list" options
+#-------------------------------------------
+usage_ndw_list() {
+
+  cat << EOF
+Usage: ${NDW_NAME} list [<args>]
+
+    -h            Show this message.
+    -l            List installed local versions.
+    -r            List remote versions.
+EOF
+
+}
+
+
+#===========================================
+# Sub commands of nodew.
+#===========================================
+
+#-------------------------------------------
+# install
+#-------------------------------------------
+cmd_install() {
+
+  local INSTALL_VERSION=$1
+  local REMOTE_BINARY_URL="$(node_binary_url ${INSTALL_VERSION})"
+  local BINARY_FILE_NAME="$(node_binary_file ${INSTALL_VERSION})"
+  local DOWNLOAD_BINARY_PATH="${NDW_DOWNLOADS_DIR}/${BINARY_FILE_NAME}"
+  local STATUS_CODE=$(curl -Is ${REMOTE_BINARY_URL} -o /dev/null -w "%{http_code}")
+
+  # Not exists version?
+  if [[ ${STATUS_CODE} != "200" ]]; then
+    echo "Not found specify this version."
+    exit 1
+  fi
+
+  # Already installed version?
+  if [[ -e "${NDW_VERSIONS_DIR}/${INSTALL_VERSION}" ]]; then
+    echo "Already installed this version."
+    read -p "Continue with installation? (y/N) : " ${CONTINUE_INSTALL}
+    [[ ${CONTINUE_INSTALL} = "N" ]] && exit 0
+  fi
+
+  echo "Installing ${INSTALL_VERSION}...."
+
+  # creates downloading directory and download specified version binary
+  mkdir -p ${NDW_DOWNLOADS_DIR} && curl -Ls "${REMOTE_BINARY_URL}" -o "${DOWNLOAD_BINARY_PATH}"
+
+  # Decompress binary package
+  mkdir -p "${NDW_VERSIONS_DIR}" && tar zxf "${DOWNLOAD_BINARY_PATH}" -C "${NDW_VERSIONS_DIR}"
+  mv "${NDW_VERSIONS_DIR}/$(basename ${BINARY_FILE_NAME} .${NODE_BINARY_FILE_EXTENSION})" "${NDW_VERSIONS_DIR}/${INSTALL_VERSION}"
+
+  echo "Complete installing ${INSTALL_VERSION}."
+
+}
+
+#-------------------------------------------
+# uninstall
+#-------------------------------------------
+cmd_uninstall() {
+
+  local INSTALL_VERSION=$1
+  local DOWNLOAD_BINARY_PATH="${NDW_DOWNLOADS_DIR}/$(node_binary_file ${INSTALL_VERSION})"
+
+  # Not install version?
+  if [[ ! -e "${NDW_VERSIONS_DIR}/${INSTALL_VERSION}" ]]; then
+    echo "Not found this version."
+    exit 1
+  fi
+
+  # Confirm uninstall specified version
+  read -p "Uninstall ${INSTALL_VERSION}? (y/N) : " CONFIRM_UNINSTALL
+
+  # Uninstall yes?
+  if [[ ${CONFIRM_UNINSTALL} = "y" ]]; then
+
+    # Decompress binary package
+    rm -rf "${DOWNLOAD_BINARY_PATH}" "${NDW_VERSIONS_DIR}/${INSTALL_VERSION}"
+
+    [[ $? -eq 0 ]] && echo "Complete uninstalling ${INSTALL_VERSION}."
+
+  fi
+
+}
+
+#-------------------------------------------
+# list
+#-------------------------------------------
+cmd_list() {
+
+  while getopts hrl OPTION "$@"
+  do
+    case ${OPTION} in
+      r)
+        git ls-remote -t ${NODE_REPO_URL} | awk -F/ '{ print $NF }' | sort_versions
+        exit 0
+        ;;
+      l)
+        [[ -e ${NDW_VERSIONS_DIR} ]] && ls ${NDW_VERSIONS_DIR} | sort_versions
+        exit 0
+        ;;
+      *)
+        usage_ndw_list;
+        exit 0
+        ;;
+    esac
+  done
+  usage_ndw_list
+
+}
+
+#-------------------------------------------
+# local
+#-------------------------------------------
+cmd_local() {
+
+  local USING_VERSION=$1
+
+  # No specified version?
+  if [[ -z ${USING_VERSION} ]]; then
+
+    local NODE_VERSION=$(find_local_version $(pwd))
+    
+    # Not found global version file?
+    if [[ -n ${NODE_VERSION} ]]; then
+
+      # Output local version
+      echo "${NODE_VERSION}"
+
+    else
+
+      echo "No specify local version."
+
+    fi
+
+    exit 0
+
+  fi
+
+  # No installed specified version?
+  if [[ ! -e "${NDW_VERSIONS_DIR}/${USING_VERSION}" ]]; then
+    echo "No installed specified version."
+    exit 1
+  fi
+
+  # creates global version file
+  printf "${USING_VERSION}" > "$(pwd)/${NODE_VERSION_FILE}"
+
+}
+
+#-------------------------------------------
+# global
+#-------------------------------------------
+cmd_global() {
+
+  local USING_VERSION=$1
+
+  # No specified version?
+  if [[ -z ${USING_VERSION} ]]; then
+    
+    # Not found global version file?
+    if [[ -e "${NDW_ROOT}/${NODE_GLOBAL_VERSION_FILE}" ]]; then
+
+      # Output global version
+      cat_file ${NDW_ROOT} ${NODE_GLOBAL_VERSION_FILE}
+
+    else
+
+      echo "No specify global version."
+
+    fi
+
+    exit 0
+
+  fi
+
+  # No installed specified version?
+  if [[ ! -e "${NDW_VERSIONS_DIR}/${USING_VERSION}" ]]; then
+    echo "No installed specified version."
+    exit 1
+  fi
+
+  # creates global version file
+  printf "${USING_VERSION}" > "${NDW_ROOT}/${NODE_GLOBAL_VERSION_FILE}"
+
+}
+
+#-------------------------------------------
+# current
+#-------------------------------------------
+cmd_current() {
+
+  local CURRENT_VERSION="$(find_version $(pwd))"
+
+  # Empty version?
+  if [[ -z ${CURRENT_VERSION} ]]; then
+    echo "No specify using NodeJS version."
+    exit 1
+  fi
+
+  echo ${CURRENT_VERSION}
+
+}
+
+#-------------------------------------------
+# exec
+#-------------------------------------------
+cmd_exec() {
+
+  exec_command "$(find_version ${CURRENT_DIR})" "$@"
+
+}
+
+#-------------------------------------------
+# node
+#-------------------------------------------
+cmd_node() {
+
+  exec_command "$(find_version ${CURRENT_DIR})" node "$@"
+
+}
+
+#-------------------------------------------
+# npm
+#-------------------------------------------
+cmd_npm() {
+
+  exec_command "$(find_version ${CURRENT_DIR})" npm "$@"
+
+}
+
+#-------------------------------------------
+# npx
+#-------------------------------------------
+cmd_npx() {
+
+  exec_command "$(find_version ${CURRENT_DIR})" npx "$@"
+
+}
+
+#-------------------------------------------
+# yarn
+#-------------------------------------------
+cmd_yarn() {
+
+  exec_command "$(find_version ${CURRENT_DIR})" yarn "$@"
+
+}
+
+#-------------------------------------------
+# install-yarn
+#-------------------------------------------
+cmd_install_yarn() {
+
+  local USING_YARN_VERSION=$1
+  local NODE_VERSION="$(find_version ${CURRENT_DIR})"
+
+  # No specify yarn version?
+  if [[ -z ${USING_YARN_VERSION} ]]; then
+
+    local LOCAL_YARN_VERSION=$(cmd_yarn --version | tr -d '\n')
+    local REMOTE_YARN_VERSION=$(curl -s https://yarnpkg.com/latest-version)
+
+    # Same local version and remote version?
+    if [[ ${LOCAL_YARN_VERSION} = ${REMOTE_YARN_VERSION} ]]; then
+      exit 0
+    fi
+
+    # Set using yarn version
+    USING_YARN_VERSION=${REMOTE_YARN_VERSION}
+
+  fi
+
+  # Install latest yarn.
+  exec_command "${NODE_VERSION}" npm i -g yarn@${USING_YARN_VERSION}
+
+}
+
+#===========================================
+# Entry point of ndw.
+#===========================================
+
+case ${NDW_NAME} in
+  ndw)
+    NDW_COMMAND=$1
+    NDW_COMMAND_OPTIONS="${@:2}"
+
+    # Operations per command.
+    case ${NDW_COMMAND} in
+      install)
+        cmd_install ${NDW_COMMAND_OPTIONS}
+        ;;
+      uninstall)
+        cmd_uninstall ${NDW_COMMAND_OPTIONS}
+        ;;
+      list)
+        cmd_list ${NDW_COMMAND_OPTIONS}
+        ;;
+      local)
+        cmd_local ${NDW_COMMAND_OPTIONS}
+        ;;
+      global)
+        cmd_global ${NDW_COMMAND_OPTIONS}
+        ;;
+      current)
+        cmd_current ${NDW_COMMAND_OPTIONS}
+        ;;
+      node)
+        cmd_node ${NDW_COMMAND_OPTIONS}
+        ;;
+      npm)
+        cmd_npm ${NDW_COMMAND_OPTIONS}
+        ;;
+      npx)
+        cmd_npx ${NDW_COMMAND_OPTIONS}
+        ;;
+      yarn)
+        cmd_yarn ${NDW_COMMAND_OPTIONS}
+        ;;
+      install-yarn)
+        cmd_install_yarn ${NDW_COMMAND_OPTIONS}
+        ;;
+      *)
+        usage_ndw
+        ;;
+    esac
+    ;;
+  nodew)
+    cmd_node "$@"
+    ;;
+  npmw)
+    cmd_npm "$@"
+    ;;
+  npxw)
+    cmd_npx "$@"
+    ;;
+  yarnw)
+    cmd_yarn "$@"
+    ;;
+  *)
+    echo "Illegal command executed."
+    exit 1
+    ;;
+esac
+
