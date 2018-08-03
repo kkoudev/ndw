@@ -1,6 +1,6 @@
 # ndw
 
-NodeJS version manager.
+Node.js version manager.
 
 ## Installation
 
@@ -12,42 +12,63 @@ Please add "/usr/local/bin" to global PATH if not included "/usr/local/bin" in g
 
 ## Usage
 
-### Install NodeJS
+### Install Node.js
 
 ```
 ndw install <version>
 ```
 
-### List available NodeJS versions
+### Uninstall Node.js
+
+```
+ndw uninstall <version>
+```
+
+### List available Node.js versions
 
 ```
 ndw list -r
 ```
 
-### List installed NodeJS versions
+### List installed Node.js versions
 
 ```
 ndw list -l
 ```
 
-### Set NodeJS local version
+### Set Node.js local version
 
 ```
-ndw local <version>
+ndw local [<version>]
 ```
 
-This command creates ".node-version" file in current directory.
+This command creates ".node-version" file in current directory.  
+Show current local version if no specify version.
 
-### Set NodeJS global version
+### Set Node.js global version
 
 ```
-ndw global <version>
+ndw global [<version>]
 ```
 
-This command creates global NodeJS version file.  
-The global version is used when ".node-version" file not found.
+This command creates global Node.js version file.  
+The global version is used if ".node-version" file not found.  
+Show current global version if no specify version.
 
-### Execute node command in current NodeJS version.
+### Execute global module commands in current Node.js version.
+
+```
+ndw exec <command>
+```
+
+#### Example
+
+```
+ndw npm i -g serverless
+ndw exec sls --version
+```
+
+### Execute node command in current Node.js version.
 
 ```
 ndw node
@@ -55,7 +76,7 @@ ndw node
 
 There is alias command as "nodew".
 
-### Execute npm command in current NodeJS version.
+### Execute npm command in current Node.js version.
 
 ```
 ndw npm
@@ -63,7 +84,7 @@ ndw npm
 
 There is alias command as "npmw".
 
-### Execute npx command in current NodeJS version.
+### Execute npx command in current Node.js version.
 
 ```
 ndw npx
@@ -71,7 +92,7 @@ ndw npx
 
 There is alias command as "npxw".
 
-### Execute yarn command in current NodeJS version.
+### Execute yarn command in current Node.js version.
 
 ```
 ndw yarn
@@ -79,7 +100,7 @@ ndw yarn
 
 There is alias command as "yarnw".
 
-### Install or upgrade yarn in current NodeJS version.
+### Install or upgrade yarn in current Node.js version.
 
 ```
 ndw install-yarn <yarn version>
@@ -87,10 +108,18 @@ ndw install-yarn <yarn version>
 
 If no specify yarn version, install the latest version.
 
-### Uninstall NodeJS
+### Show current Node.js version
 
 ```
-ndw uninstall <version>
+ndw current
+```
+
+This command shows the actually used Node.js version.
+
+### Show ndw version number
+
+```
+ndw version
 ```
 
 ## [Changelog](CHANGELOG.md)
