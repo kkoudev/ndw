@@ -103,7 +103,7 @@ There is alias command as "yarnw".
 ### Install or upgrade yarn in current Node.js version.
 
 ```
-ndw install-yarn <yarn version>
+ndw install-yarn [<yarn version>]
 ```
 
 If no specify yarn version, install the latest version.
