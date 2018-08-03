@@ -44,7 +44,7 @@ This command creates ".node-version" file in current directory.
 ndw global <version>
 ```
 
-This command creates global NodeJS version file.
+This command creates global NodeJS version file.  
 The global version is used when ".node-version" file not found.
 
 ### Execute node command in current NodeJS version.
