@@ -9,6 +9,7 @@ set -e
 #-------------------------------------------
 # Define variables.
 #
+# NDW_VERSION                 : NDW version.
 # NDW_ROOT                    : NDW root directory.
 # NDW_VERSIONS_DIR            : Node.js root directory per version.
 # NDW_DOWNLOADS_DIR           : NDW downloading directory.
@@ -154,7 +155,6 @@ sort_versions() {
 #-------------------------------------------
 exec_command() {
 
-  local CURRENT_DIR=$(pwd)
   local NODE_VERSION=$1
 
   # Empty version?
@@ -266,8 +266,8 @@ cmd_install() {
   # Already installed version?
   if [[ -e "${NDW_VERSIONS_DIR}/${INSTALL_VERSION}" ]]; then
     echo "Already installed this version."
-    read -p "Continue with installation? (y/N) : " ${CONTINUE_INSTALL}
-    [[ ${CONTINUE_INSTALL} = "N" ]] && exit 0
+    read -p "Continue with installation? (y/N) : " CONTINUE_INSTALL
+    [[ $(printf "${CONTINUE_INSTALL}" | tr '[:upper:]' '[:lower:]') != "y" ]] && exit 0
   fi
 
   echo "Installing ${INSTALL_VERSION}...."
@@ -355,14 +355,14 @@ cmd_local() {
 
       # Output local version
       echo "${NODE_VERSION}"
+      exit 0
 
     else
 
       echo "No specify local version."
+      exit 1
 
     fi
-
-    exit 0
 
   fi
 
@@ -392,14 +392,14 @@ cmd_global() {
 
       # Output global version
       cat_file ${NDW_ROOT} ${NODE_GLOBAL_VERSION_FILE}
+      exit 0
 
     else
 
       echo "No specify global version."
+      exit 1
 
     fi
-
-    exit 0
 
   fi
 
@@ -419,7 +419,7 @@ cmd_global() {
 #-------------------------------------------
 cmd_exec() {
 
-  exec_command "$(find_version ${CURRENT_DIR})" "$1" "${@:2}"
+  exec_command "$(find_version $(pwd))" "$@"
 
 }
 
@@ -428,7 +428,7 @@ cmd_exec() {
 #-------------------------------------------
 cmd_node() {
 
-  exec_command "$(find_version ${CURRENT_DIR})" node "$@"
+  exec_command "$(find_version $(pwd))" node "$@"
 
 }
 
@@ -437,7 +437,7 @@ cmd_node() {
 #-------------------------------------------
 cmd_npm() {
 
-  exec_command "$(find_version ${CURRENT_DIR})" npm "$@"
+  exec_command "$(find_version $(pwd))" npm "$@"
 
 }
 
@@ -446,7 +446,7 @@ cmd_npm() {
 #-------------------------------------------
 cmd_npx() {
 
-  exec_command "$(find_version ${CURRENT_DIR})" npx "$@"
+  exec_command "$(find_version $(pwd))" npx "$@"
 
 }
 
@@ -455,7 +455,7 @@ cmd_npx() {
 #-------------------------------------------
 cmd_yarn() {
 
-  exec_command "$(find_version ${CURRENT_DIR})" yarn "$@"
+  exec_command "$(find_version $(pwd))" yarn "$@"
 
 }
 

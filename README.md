@@ -10,6 +10,12 @@ curl -s https://raw.githubusercontent.com/kkoudev/ndw/master/install.sh | bash
 
 Please add "/usr/local/bin" to global PATH if not included "/usr/local/bin" in global PATH.
 
+## Uninstallation
+
+```
+curl -s https://raw.githubusercontent.com/kkoudev/ndw/master/uninstall.sh | bash
+```
+
 ## Usage
 
 ### Install Node.js
