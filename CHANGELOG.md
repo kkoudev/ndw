@@ -3,6 +3,7 @@
 ### Fixed
 
 -   Cannot install-yarn to current version Node.js.
+-   Error when reinstalling installed version.
 
 # 1.0.1 (2018-08-04)
 

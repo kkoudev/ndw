@@ -277,6 +277,7 @@ cmd_install() {
 
   # Decompress binary package
   mkdir -p "${NDW_VERSIONS_DIR}" && tar zxf "${DOWNLOAD_BINARY_PATH}" -C "${NDW_VERSIONS_DIR}"
+  rm -rf "${NDW_VERSIONS_DIR}/${INSTALL_VERSION}"
   mv "${NDW_VERSIONS_DIR}/$(basename ${BINARY_FILE_NAME} .${NODE_BINARY_FILE_EXTENSION})" "${NDW_VERSIONS_DIR}/${INSTALL_VERSION}"
 
   echo "Complete installing ${INSTALL_VERSION}."
