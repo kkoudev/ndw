@@ -465,7 +465,7 @@ cmd_yarn() {
 cmd_install_yarn() {
 
   local USING_YARN_VERSION=$1
-  local NODE_VERSION="$(find_version ${CURRENT_DIR})"
+  local NODE_VERSION="$(find_version $(pwd))"
 
   # No specify yarn version?
   if [[ -z ${USING_YARN_VERSION} ]]; then
