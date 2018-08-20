@@ -21,7 +21,7 @@ set -e
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-NDW_VERSION="1.0.0"
+NDW_VERSION="1.0.2"
 NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
