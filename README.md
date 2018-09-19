@@ -24,6 +24,16 @@ bash <(curl -s https://raw.githubusercontent.com/kkoudev/ndw/master/uninstall.sh
 ndw install <version>
 ```
 
+Skip displaying the prompt for reinstall specified version by option "-s" if the current version already installed.
+
+### Install current version of Node.js
+
+```
+ndw install -c
+```
+
+The current version is version specified by "ndw local" or "ndw global".
+
 ### Uninstall Node.js
 
 ```
@@ -48,7 +58,7 @@ ndw list -l
 ndw local [<version>]
 ```
 
-This command creates ".node-version" file in current directory.  
+This command creates ".node-version" file in current directory.
 Show current local version if no specify version.
 
 ### Set Node.js global version
@@ -57,8 +67,8 @@ Show current local version if no specify version.
 ndw global [<version>]
 ```
 
-This command creates global Node.js version file.  
-The global version is used if ".node-version" file not found.  
+This command creates global Node.js version file.
+The global version is used if ".node-version" file not found.
 Show current global version if no specify version.
 
 ### Execute global module commands in current Node.js version.

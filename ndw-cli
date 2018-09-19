@@ -21,7 +21,7 @@ set -e
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-NDW_VERSION="1.0.2"
+NDW_VERSION="1.1.0"
 NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
@@ -227,7 +227,22 @@ EOF
 }
 
 #-------------------------------------------
-# View usage "nodew list" options
+# View usage "ndw install" options
+#-------------------------------------------
+usage_ndw_install() {
+
+  cat << EOF
+Usage: ${NDW_NAME} install [<args>] [<version>]
+
+    -h            Show this message.
+    -c            Install current Node.js version.
+    -s            Skip displaying prompt for reinstall specified version.
+EOF
+
+}
+
+#-------------------------------------------
+# View usage "ndw list" options
 #-------------------------------------------
 usage_ndw_list() {
 
@@ -243,7 +258,7 @@ EOF
 
 
 #===========================================
-# Sub commands of nodew.
+# Sub commands of ndw.
 #===========================================
 
 #-------------------------------------------
@@ -251,7 +266,36 @@ EOF
 #-------------------------------------------
 cmd_install() {
 
-  local INSTALL_VERSION=$1
+  local CURRENT_VERSION=""
+  local SKIP_REINSTALLED_VERSION=""
+
+  while getopts hcs OPTION "$@"
+  do
+    case ${OPTION} in
+      c)
+        CURRENT_VERSION="$(find_version $(pwd))"
+
+        # Empty version?
+        if [[ -z ${CURRENT_VERSION} ]]; then
+          echo "No specify using Node.js version."
+          exit 1
+        fi
+
+        # specify current version as install version.
+        INSTALL_VERSION=${CURRENT_VERSION}
+        ;;
+      s)
+        SKIP_REINSTALLED_VERSION="y"
+        ;;
+      *)
+        usage_ndw_install;
+        exit 0
+        ;;
+    esac
+  done
+  shift $(($OPTIND - 1))
+
+  local INSTALL_VERSION=${CURRENT_VERSION:-"$1"}
   local REMOTE_BINARY_URL="$(node_binary_url ${INSTALL_VERSION})"
   local BINARY_FILE_NAME="$(node_binary_file ${INSTALL_VERSION})"
   local DOWNLOAD_BINARY_PATH="${NDW_DOWNLOADS_DIR}/${BINARY_FILE_NAME}"
@@ -265,9 +309,14 @@ cmd_install() {
 
   # Already installed version?
   if [[ -e "${NDW_VERSIONS_DIR}/${INSTALL_VERSION}" ]]; then
+
+    # Skip re-installed version?
+    [[ "${SKIP_REINSTALLED_VERSION}" = "y" ]] && exit 0
+
     echo "Already installed this version."
     read -p "Continue with installation? (y/N) : " CONTINUE_INSTALL
     [[ $(printf "${CONTINUE_INSTALL}" | tr '[:upper:]' '[:lower:]') != "y" ]] && exit 0
+
   fi
 
   echo "Installing ${INSTALL_VERSION}...."
