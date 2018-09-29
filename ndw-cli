@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -eC
 
 #===========================================
 # Define common variables and functions.
@@ -21,7 +21,7 @@ set -e
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-NDW_VERSION="1.1.0"
+NDW_VERSION="1.2.0"
 NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
@@ -173,10 +173,12 @@ exec_command() {
   local EXEC_COMMAND_ARGS="${@:3}"
   local NODE_ROOT="${NDW_VERSIONS_DIR}/${NODE_VERSION}"
   local NODE_BIN="${NODE_ROOT}/bin"
+  export PATH="${NODE_BIN}:${PATH}"
 
   # execute commands
-  if [[ -e "${NODE_BIN}/${EXEC_COMMAND}" ]]; then
-    PATH="${NODE_BIN}:$PATH" "${NODE_BIN}/${EXEC_COMMAND}" ${EXEC_COMMAND_ARGS}
+  which -s "${EXEC_COMMAND}"
+  if [[ $? -eq 0 ]]; then
+    "${EXEC_COMMAND}" ${EXEC_COMMAND_ARGS}
   else
 
     case ${EXEC_COMMAND} in
@@ -620,16 +622,16 @@ case ${NDW_NAME} in
         ;;
     esac
     ;;
-  nodew)
+  nodew|node)
     cmd_node "$@"
     ;;
-  npmw)
+  npmw|npm)
     cmd_npm "$@"
     ;;
-  npxw)
+  npxw|npx)
     cmd_npx "$@"
     ;;
-  yarnw)
+  yarnw|yarn)
     cmd_yarn "$@"
     ;;
   *)

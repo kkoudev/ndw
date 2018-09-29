@@ -1,3 +1,9 @@
+# 1.2.0 (2018-09-30)
+
+### Added
+
+-   Creates symbolic links for "node", "npm", "npx" and "yarn" command at installation.
+
 # 1.1.0 (2018-09-19)
 
 ### Added

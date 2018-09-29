@@ -45,12 +45,18 @@ read -p "Really uninstall ndw? (y/N) : " CONTINUE_UNINSTALL
 if [[ $(printf "${CONTINUE_UNINSTALL}" | tr '[:upper:]' '[:lower:]') = "y" ]]; then
 
   # Remove all commands
-  rm -f ${INSTALL_DIR}/ndw-cli
-  rm -f ${INSTALL_DIR}/ndw
-  rm -f ${INSTALL_DIR}/nodew
-  rm -f ${INSTALL_DIR}/npmw
-  rm -f ${INSTALL_DIR}/npxw
-  rm -f ${INSTALL_DIR}/yarnw
+  for CMD_NAME in ndw-cli ndw nodew npmw npxw yarnw
+  do
+    rm -f ${INSTALL_DIR}/${CMD_NAME}
+  done
+
+  # Remove all general commands
+  for CMD_NAME in node npm npx yarn
+  do
+    [[ -e ${INSTALL_DIR}/${CMD_NAME} \
+      && -L ${INSTALL_DIR}/${CMD_NAME} \
+      && $(readlink ${INSTALL_DIR}/${CMD_NAME} | tr -d '\n') = ${INSTALL_DIR}/ndw-cli ]] && rm -f ${INSTALL_DIR}/${CMD_NAME}
+  done
 
   echo "Complete uninstallation."
 
