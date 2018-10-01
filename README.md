@@ -16,6 +16,23 @@ Please add "/usr/local/bin" to global PATH if not included "/usr/local/bin" in g
 bash <(curl -s https://raw.githubusercontent.com/kkoudev/ndw/master/uninstall.sh)
 ```
 
+## Supports ".env" file
+
+The ".env" file defines environment variables during command execution.
+
+```
+# 1. Creates a .env file in project root directory.
+# .env
+NODE_ENV=production
+
+# 2. Executes ndw command or alias node commands.
+ndw node example.js
+
+or
+
+node example.js
+```
+
 ## Usage
 
 ### Install Node.js

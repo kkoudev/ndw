@@ -1,3 +1,9 @@
+# 1.3.0 (2018-10-01)
+
+### Added
+
+-   Supports ".env" file. This file defines environment variables during command execution.
+
 # 1.2.0 (2018-09-30)
 
 ### Added

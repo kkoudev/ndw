@@ -16,22 +16,24 @@ set -e
 # NDW_NAME                    : NDW command name.
 # NODE_REPO_URL               : Node.js repository URL.
 # NODE_VERSION_FILE           : Node.js version file name.
+# NODE_ENV_FILE               : Node.js environment variable definitions file name.
 # NODE_GLOBAL_VERSION_FILE    : Node.js global version file name.
 # NODE_BINARY_FILE_EXTENSION  : Node.js binary archive file extension.
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-NDW_VERSION="1.2.0"
-NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
-NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
-NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
-NDW_NAME=${0##*/}
-NODE_REPO_URL="https://github.com/nodejs/node"
-NODE_VERSION_FILE=".node-version"
-NODE_GLOBAL_VERSION_FILE="version"
-NODE_BINARY_FILE_EXTENSION="tar.gz"
-NODE_BINARY_FILE_FORMAT="node-%s-%s-%s.${NODE_BINARY_FILE_EXTENSION}"
-NODE_BINARY_URL_FORMAT="https://nodejs.org/dist/%s/%s"
+readonly NDW_VERSION="1.3.0"
+readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
+readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
+readonly NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
+readonly NDW_NAME=${0##*/}
+readonly NODE_REPO_URL="https://github.com/nodejs/node"
+readonly NODE_VERSION_FILE=".node-version"
+readonly NODE_ENV_FILE=".env"
+readonly NODE_GLOBAL_VERSION_FILE="version"
+readonly NODE_BINARY_FILE_EXTENSION="tar.gz"
+readonly NODE_BINARY_FILE_FORMAT="node-%s-%s-%s.${NODE_BINARY_FILE_EXTENSION}"
+readonly NODE_BINARY_URL_FORMAT="https://nodejs.org/dist/%s/%s"
 
 
 #-------------------------------------------
@@ -88,6 +90,31 @@ find_version() {
   fi
 
   echo -n "${NODE_VERSION}"
+
+}
+
+#-------------------------------------------
+# Output nearly env file path.
+#
+# 1 : The root directory.
+#-------------------------------------------
+find_env_path() {
+
+  local DIR_PATH="$1"
+  local NODE_ENV_PATH="${DIR_PATH}/${NODE_ENV_FILE}"
+
+  # find version file in parent directory
+  while [[ ! -e ${NODE_ENV_PATH} && -n "${DIR_PATH}" ]]
+  do
+    DIR_PATH="${DIR_PATH%/*}"
+    NODE_ENV_PATH="${DIR_PATH}/${NODE_ENV_FILE}"
+  done
+
+  if [[ -e "${NODE_ENV_PATH}" ]]; then
+    echo -n "${NODE_ENV_PATH}"
+  else
+    echo -n ""
+  fi
 
 }
 
@@ -169,11 +196,23 @@ exec_command() {
     exit 1
   fi
 
+  local CURRENT_DIR="$(pwd)"
   local EXEC_COMMAND=$2
   local EXEC_COMMAND_ARGS="${@:3}"
   local NODE_ROOT="${NDW_VERSIONS_DIR}/${NODE_VERSION}"
   local NODE_BIN="${NODE_ROOT}/bin"
   export PATH="${NODE_BIN}:${PATH}"
+
+  # load envfile path
+  local NODE_ENV_PATH=$(find_env_path ${CURRENT_DIR})
+
+  # define environment variables?
+  if [[ -n ${NODE_ENV_PATH} ]]; then
+
+    # load environment variables
+    eval "$(awk '/^(.+)/ {print "export " $1}' ${NODE_ENV_PATH})"
+
+  fi
 
   # execute commands
   which -s "${EXEC_COMMAND}"
