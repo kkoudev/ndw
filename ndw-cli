@@ -22,7 +22,7 @@ set -e
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-readonly NDW_VERSION="1.3.0"
+readonly NDW_VERSION="1.3.1"
 readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 readonly NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
@@ -215,8 +215,7 @@ exec_command() {
   fi
 
   # execute commands
-  which -s "${EXEC_COMMAND}"
-  if [[ $? -eq 0 ]]; then
+  if which -s ${EXEC_COMMAND}; then
     "${EXEC_COMMAND}" ${EXEC_COMMAND_ARGS}
   else
 
