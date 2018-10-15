@@ -5,7 +5,11 @@ Node.js version manager.
 ## Installation
 
 ```
+# bash, zsh
 bash <(curl -s https://raw.githubusercontent.com/kkoudev/ndw/master/install.sh)
+
+# fish
+bash (curl -s https://raw.githubusercontent.com/kkoudev/ndw/master/install.sh | psub)
 ```
 
 Please add "/usr/local/bin" to global PATH if not included "/usr/local/bin" in global PATH.
@@ -13,7 +17,11 @@ Please add "/usr/local/bin" to global PATH if not included "/usr/local/bin" in g
 ## Uninstallation
 
 ```
+# bash, zsh
 bash <(curl -s https://raw.githubusercontent.com/kkoudev/ndw/master/uninstall.sh)
+
+# fish
+bash (curl -s https://raw.githubusercontent.com/kkoudev/ndw/master/uninstall.sh | psub)
 ```
 
 ## Supports ".env" file
