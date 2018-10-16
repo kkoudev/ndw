@@ -4,6 +4,8 @@ Node.js version manager.
 
 ## Installation
 
+ndw requires bash, curl and awk.
+
 ```
 # bash, zsh
 bash <(curl -s https://raw.githubusercontent.com/kkoudev/ndw/master/install.sh)

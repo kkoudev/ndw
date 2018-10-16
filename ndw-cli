@@ -6,7 +6,7 @@ set -e
 # Check required commands.
 #===========================================
 
-for CMD_NAME in curl git awk
+for CMD_NAME in curl awk
 do
   if ! type ${CMD_NAME} > /dev/null 2>&1; then
     echo "Requires ${CMD_NAME} command."
@@ -27,7 +27,7 @@ done
 # NDW_VERSIONS_DIR            : Node.js root directory per version.
 # NDW_DOWNLOADS_DIR           : NDW downloading directory.
 # NDW_NAME                    : NDW command name.
-# NODE_REPO_URL               : Node.js repository URL.
+# NODE_TAGS_URL               : Node.js repository tags URL.
 # NODE_VERSION_FILE           : Node.js version file name.
 # NODE_ENV_FILE               : Node.js environment variable definitions file name.
 # NODE_GLOBAL_VERSION_FILE    : Node.js global version file name.
@@ -35,12 +35,12 @@ done
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-readonly NDW_VERSION="1.3.2"
+readonly NDW_VERSION="1.4.0"
 readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 readonly NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
 readonly NDW_NAME=${0##*/}
-readonly NODE_REPO_URL="https://github.com/nodejs/node"
+readonly NODE_TAGS_URL="https://nodejs.org/dist/"
 readonly NODE_VERSION_FILE=".node-version"
 readonly NODE_ENV_FILE=".env"
 readonly NODE_GLOBAL_VERSION_FILE="version"
@@ -182,7 +182,7 @@ node_binary_url() {
 #-------------------------------------------
 sort_versions() {
 
-  cat - | grep -E '^v\d.*\d$' --color=none | sed -E 's;^v;;g' | sort -t "." -k 1n -k 2n -k 3n | awk '{ print "v"$1 }'
+  cat - | awk '{gsub("v", ""); print $0;}' | sort -t "." -k 1n -k 2n -k 3n | awk '{print "v" $1}'
 
 }
 
@@ -424,7 +424,7 @@ cmd_list() {
   do
     case ${OPTION} in
       r)
-        git ls-remote -t ${NODE_REPO_URL} | awk -F/ '{ print $NF }' | sort_versions
+        curl -Ls "${NODE_TAGS_URL}" | grep -o -E "v([0-9\.]+)/</a>" | awk '{gsub("/</a>", ""); print $0;}' | sort_versions
         exit 0
         ;;
       l)
