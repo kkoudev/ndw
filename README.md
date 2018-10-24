@@ -33,6 +33,8 @@ The ".env" file defines environment variables during command execution.
 ```
 # 1. Creates a .env file in project root directory.
 # .env
+
+# Environment type
 NODE_ENV=production
 
 # 2. Executes ndw command or alias node commands.
@@ -97,6 +99,23 @@ ndw global [<version>]
 This command creates global Node.js version file.
 The global version is used if ".node-version" file not found.
 Show current global version if no specify version.
+
+### Print export statements for definition variables from ".env" file.
+
+```
+ndw env [<shell name>]
+```
+
+#### Example
+
+```
+# .env file
+EXEC_FILE="./main.js"
+
+# specify a execution script by definition variable.
+eval $(ndw env bash)
+node ${EXEC_FILE}
+```
 
 ### Execute global module commands in current Node.js version.
 
