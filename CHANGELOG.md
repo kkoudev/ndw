@@ -1,3 +1,9 @@
+# 1.5.1 (2018-12-25)
+
+### Fixed
+
+-   Infinity loop bug when "yarn" command execution.
+
 # 1.5.0 (2018-10-24)
 
 ### Added

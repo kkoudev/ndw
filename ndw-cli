@@ -229,24 +229,38 @@ exec_command() {
 
   # execute commands
   if type ${EXEC_COMMAND} > /dev/null 2>&1; then
-    "${EXEC_COMMAND}" ${EXEC_COMMAND_ARGS}
-  else
 
-    case ${EXEC_COMMAND} in
-    yarn)
-      echo "Please install yarn command."
-      echo ""
-      echo "    ndw install-yarn [<yarn version>]."
-      echo ""
+    # Is exec command ndw command?
+    case "${EXEC_COMMAND}" in
+    node|npm|npx|yarn)
+      if [[ -e ${NODE_BIN}/${EXEC_COMMAND} ]]; then
+        "${NODE_BIN}/${EXEC_COMMAND}" ${EXEC_COMMAND_ARGS}
+        return $?
+      fi
       ;;
+
     *)
-      echo "Not found specified command."
+      "${EXEC_COMMAND}" ${EXEC_COMMAND_ARGS}
+      return $?
       ;;
+
     esac
 
-    exit 1
-
   fi
+
+  case ${EXEC_COMMAND} in
+  yarn)
+    echo "Please install yarn command."
+    echo ""
+    echo "    ndw install-yarn [<yarn version>]."
+    echo ""
+    ;;
+  *)
+    echo "Not found specified command."
+    ;;
+  esac
+
+  exit 1
 
 }
 
