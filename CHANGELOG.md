@@ -1,3 +1,9 @@
+# 1.5.2 (2019-02-11)
+
+### Fixed
+
+-   Binding incorrect values from ".env".
+
 # 1.5.1 (2018-12-25)
 
 ### Fixed

@@ -35,7 +35,7 @@ done
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-readonly NDW_VERSION="1.5.0"
+readonly NDW_VERSION="1.5.2"
 readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 readonly NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
@@ -223,7 +223,7 @@ exec_command() {
   if [[ -n ${NODE_ENV_PATH} ]]; then
 
     # load environment variables
-    eval "$(awk '/^([^#.]+)/ {print "export " $1}' ${NODE_ENV_PATH})"
+    eval "$(awk -F'\n' '/^([^#.]+)/ {print "export " $1}' ${NODE_ENV_PATH})"
 
   fi
 
@@ -543,13 +543,13 @@ cmd_env() {
   case "${SHELL_NAME}" in
   bash|zsh)
     if [[ -n ${NODE_ENV_PATH} ]]; then
-      awk '/^([^#.]+)/ {print "export " $1}' ${NODE_ENV_PATH}
+      awk -F'\n' '/^([^#.]+)/ {print "export " $1}' ${NODE_ENV_PATH}
     fi
     ;;
 
   fish)
     if [[ -n ${NODE_ENV_PATH} ]]; then
-      awk '/^([^#.]+)/ {gsub("=", " ", $1); print "set -x " $1;}' ${NODE_ENV_PATH}
+      awk -F'\n' '/^([^#.]+)/ {gsub("=", " ", $1); print "set -x " $1;}' ${NODE_ENV_PATH}
     fi
     ;;
 
