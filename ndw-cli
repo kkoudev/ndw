@@ -35,7 +35,7 @@ done
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-readonly NDW_VERSION="1.5.2"
+readonly NDW_VERSION="1.5.3"
 readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 readonly NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
@@ -617,7 +617,7 @@ cmd_install_yarn() {
   if [[ -z ${USING_YARN_VERSION} ]]; then
 
     local LOCAL_YARN_VERSION=$(cmd_yarn --version | tr -d '\n')
-    local REMOTE_YARN_VERSION=$(curl -s https://yarnpkg.com/latest-version)
+    local REMOTE_YARN_VERSION=$(curl -sL https://legacy.yarnpkg.com/latest-version)
 
     # Same local version and remote version?
     if [[ ${LOCAL_YARN_VERSION} = ${REMOTE_YARN_VERSION} ]]; then

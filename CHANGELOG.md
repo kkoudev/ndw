@@ -1,3 +1,9 @@
+# 1.5.3 (2020-01-29)
+
+### Fixed
+
+-   Cannot executing "install-yarn" command.
+
 # 1.5.2 (2019-02-11)
 
 ### Fixed
