@@ -27,6 +27,7 @@ done
 # NDW_VERSIONS_DIR            : Node.js root directory per version.
 # NDW_DOWNLOADS_DIR           : NDW downloading directory.
 # NDW_NAME                    : NDW command name.
+# NDW_CLI_PATH                : NDW file path (this file path)
 # NODE_TAGS_URL               : Node.js repository tags URL.
 # NODE_VERSION_FILE           : Node.js version file name.
 # NODE_ENV_FILE               : Node.js environment variable definitions file name.
@@ -35,11 +36,12 @@ done
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-readonly NDW_VERSION="1.5.3"
+readonly NDW_VERSION="1.6.0"
 readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 readonly NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
 readonly NDW_NAME=${0##*/}
+readonly NDW_CLI_PATH=$(printf "$0" | xargs readlink)
 readonly NODE_TAGS_URL="https://nodejs.org/dist/"
 readonly NODE_VERSION_FILE=".node-version"
 readonly NODE_ENV_FILE=".env"
@@ -187,6 +189,26 @@ sort_versions() {
 }
 
 #-------------------------------------------
+# Get latest yarn version
+#-------------------------------------------
+latest_yarn_version() {
+
+  curl -Ls https://legacy.yarnpkg.com/latest-version
+
+}
+
+#-------------------------------------------
+# Get latest pnpm version
+#-------------------------------------------
+latest_pnpm_version() {
+
+  curl -Ls "https://github.com/pnpm/pnpm/tags" | grep -o -E "<a href=\"/pnpm/pnpm/releases/tag/([^\"]+)" \
+  | awk '{ gsub("<a href=\"/pnpm/pnpm/releases/tag/", ""); print $1 }' \
+  | sort_versions | tail -n 1 | tr -d '\n'
+
+}
+
+#-------------------------------------------
 # Execute command in specified version.
 #
 # 1   : Node.js version
@@ -230,21 +252,15 @@ exec_command() {
   # execute commands
   if type ${EXEC_COMMAND} > /dev/null 2>&1; then
 
-    # Is exec command ndw command?
-    case "${EXEC_COMMAND}" in
-    node|npm|npx|yarn)
-      if [[ -e ${NODE_BIN}/${EXEC_COMMAND} ]]; then
-        "${NODE_BIN}/${EXEC_COMMAND}" ${EXEC_COMMAND_ARGS}
-        return $?
-      fi
-      ;;
+    local EXEC_REAL_PATH=$(which ${EXEC_COMMAND} | head -n 1 | xargs readlink)
 
-    *)
+    # If exec command and this cli path are different?
+    if [[ ${EXEC_REAL_PATH} != ${NDW_CLI_PATH} ]]; then
+
       "${EXEC_COMMAND}" ${EXEC_COMMAND_ARGS}
       return $?
-      ;;
 
-    esac
+    fi
 
   fi
 
@@ -253,6 +269,12 @@ exec_command() {
     echo "Please install yarn command."
     echo ""
     echo "    ndw install-yarn [<yarn version>]."
+    echo ""
+    ;;
+  pnpm|pnpx)
+    echo "Please install pnpm command."
+    echo ""
+    echo "    ndw install-pnpm [<pnpm version>]."
     echo ""
     ;;
   *)
@@ -287,7 +309,10 @@ Usage: ${NDW_NAME} <command> [<options>]
     npm                             Execute npm command in current Node.js version.
     npx                             Execute npx command in current Node.js version.
     yarn                            Execute yarn command in current Node.js version.
+    pnpm                            Execute pnpm command in current Node.js version.
+    pnpx                            Execute pnpx command in current Node.js version.
     install-yarn [<yarn version>]   Install or upgrade yarn in current Node.js version.
+    install-pnpm [<pnpm version>]   Install or upgrade pnpm in current Node.js version.
     current                         Show current Node.js version.
     version                         Show ${NDW_NAME} version number.
 EOF
@@ -606,6 +631,24 @@ cmd_yarn() {
 }
 
 #-------------------------------------------
+# pnpm
+#-------------------------------------------
+cmd_pnpm() {
+
+  exec_command "$(find_version $(pwd))" pnpm "$@"
+
+}
+
+#-------------------------------------------
+# pnpx
+#-------------------------------------------
+cmd_pnpx() {
+
+  exec_command "$(find_version $(pwd))" pnpx "$@"
+
+}
+
+#-------------------------------------------
 # install-yarn
 #-------------------------------------------
 cmd_install_yarn() {
@@ -617,7 +660,7 @@ cmd_install_yarn() {
   if [[ -z ${USING_YARN_VERSION} ]]; then
 
     local LOCAL_YARN_VERSION=$(cmd_yarn --version | tr -d '\n')
-    local REMOTE_YARN_VERSION=$(curl -sL https://legacy.yarnpkg.com/latest-version)
+    local REMOTE_YARN_VERSION=$(latest_yarn_version)
 
     # Same local version and remote version?
     if [[ ${LOCAL_YARN_VERSION} = ${REMOTE_YARN_VERSION} ]]; then
@@ -631,6 +674,35 @@ cmd_install_yarn() {
 
   # Install latest yarn.
   exec_command "${NODE_VERSION}" npm i -g yarn@${USING_YARN_VERSION}
+
+}
+
+#-------------------------------------------
+# install-pnpm
+#-------------------------------------------
+cmd_install_pnpm() {
+
+  local USING_PNPM_VERSION=$1
+  local NODE_VERSION="$(find_version $(pwd))"
+
+  # No specify pnpm version?
+  if [[ -z ${USING_PNPM_VERSION} ]]; then
+
+    local LOCAL_PNPM_VERSION=$(cmd_pnpm --version | tr -d '\n')
+    local REMOTE_PNPM_VERSION=$(latest_pnpm_version)
+
+    # Same local version and remote version?
+    if [[ ${LOCAL_PNPM_VERSION} = ${REMOTE_PNPM_VERSION} ]]; then
+      exit 0
+    fi
+
+    # Set using pnpm version
+    USING_PNPM_VERSION=${REMOTE_PNPM_VERSION}
+
+  fi
+
+  # Install latest pnpm.
+  exec_command "${NODE_VERSION}" npm i -g pnpm@${USING_PNPM_VERSION}
 
 }
 
@@ -705,8 +777,17 @@ case ${NDW_NAME} in
       yarn)
         cmd_yarn ${NDW_COMMAND_OPTIONS}
         ;;
+      pnpm)
+        cmd_pnpm ${NDW_COMMAND_OPTIONS}
+        ;;
+      pnpx)
+        cmd_pnpx ${NDW_COMMAND_OPTIONS}
+        ;;
       install-yarn)
         cmd_install_yarn ${NDW_COMMAND_OPTIONS}
+        ;;
+      install-pnpm)
+        cmd_install_pnpm ${NDW_COMMAND_OPTIONS}
         ;;
       current)
         cmd_current ${NDW_COMMAND_OPTIONS}
@@ -730,6 +811,12 @@ case ${NDW_NAME} in
     ;;
   yarnw|yarn)
     cmd_yarn "$@"
+    ;;
+  pnpmw|pnpm)
+    cmd_pnpm "$@"
+    ;;
+  pnpxw|pnpx)
+    cmd_pnpx "$@"
     ;;
   *)
     echo "Illegal command executed."

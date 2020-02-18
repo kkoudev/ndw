@@ -1,3 +1,9 @@
+# 1.6.0 (2020-02-18)
+
+### Added
+
+-   Support for "install-pnpm", "pnpm" and "pnpx" commands.
+
 # 1.5.3 (2020-01-29)
 
 ### Fixed
