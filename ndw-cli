@@ -28,6 +28,7 @@ done
 # NDW_DOWNLOADS_DIR           : NDW downloading directory.
 # NDW_NAME                    : NDW command name.
 # NDW_CLI_PATH                : NDW file path (this file path)
+# NDW_DOWNLOADS_TIMEOUT       : NDW file download timeout (seconds)
 # NODE_TAGS_URL               : Node.js repository tags URL.
 # NODE_VERSION_FILE           : Node.js version file name.
 # NODE_ENV_FILE               : Node.js environment variable definitions file name.
@@ -36,12 +37,13 @@ done
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-readonly NDW_VERSION="1.6.0"
+readonly NDW_VERSION="1.6.1"
 readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 readonly NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
 readonly NDW_NAME=${0##*/}
 readonly NDW_CLI_PATH=$(printf "$0" | xargs readlink)
+readonly NDW_DOWNLOADS_TIMEOUT=3600
 readonly NODE_TAGS_URL="https://nodejs.org/dist/"
 readonly NODE_VERSION_FILE=".node-version"
 readonly NODE_ENV_FILE=".env"
@@ -415,7 +417,7 @@ cmd_install() {
   echo "Installing ${INSTALL_VERSION}...."
 
   # creates downloading directory and download specified version binary
-  mkdir -p ${NDW_DOWNLOADS_DIR} && curl -Ls "${REMOTE_BINARY_URL}" -o "${DOWNLOAD_BINARY_PATH}"
+  mkdir -p ${NDW_DOWNLOADS_DIR} && curl -Ls -m ${NDW_DOWNLOADS_TIMEOUT} "${REMOTE_BINARY_URL}" -o "${DOWNLOAD_BINARY_PATH}"
 
   # Decompress binary package
   mkdir -p "${NDW_VERSIONS_DIR}" && tar zxf "${DOWNLOAD_BINARY_PATH}" -C "${NDW_VERSIONS_DIR}"
@@ -739,61 +741,58 @@ cmd_version() {
 
 case ${NDW_NAME} in
   ndw)
-    NDW_COMMAND=$1
-    NDW_COMMAND_OPTIONS="${@:2}"
-
     # Operations per command.
-    case ${NDW_COMMAND} in
+    case "$1" in
       install)
-        cmd_install ${NDW_COMMAND_OPTIONS}
+        cmd_install "${@:2}"
         ;;
       uninstall)
-        cmd_uninstall ${NDW_COMMAND_OPTIONS}
+        cmd_uninstall "${@:2}"
         ;;
       list)
-        cmd_list ${NDW_COMMAND_OPTIONS}
+        cmd_list "${@:2}"
         ;;
       local)
-        cmd_local ${NDW_COMMAND_OPTIONS}
+        cmd_local "${@:2}"
         ;;
       global)
-        cmd_global ${NDW_COMMAND_OPTIONS}
+        cmd_global "${@:2}"
         ;;
       env)
-        cmd_env ${NDW_COMMAND_OPTIONS}
+        cmd_env "${@:2}"
         ;;
       exec)
-        cmd_exec ${NDW_COMMAND_OPTIONS}
+        cmd_exec "${@:2}"
         ;;
       node)
-        cmd_node ${NDW_COMMAND_OPTIONS}
+        cmd_node "${@:2}"
         ;;
       npm)
-        cmd_npm ${NDW_COMMAND_OPTIONS}
+        cmd_npm "${@:2}"
         ;;
       npx)
-        cmd_npx ${NDW_COMMAND_OPTIONS}
+        cmd_npx "${@:2}"
         ;;
       yarn)
-        cmd_yarn ${NDW_COMMAND_OPTIONS}
+        cmd_yarn "${@:2}"
         ;;
       pnpm)
-        cmd_pnpm ${NDW_COMMAND_OPTIONS}
+        cmd_pnpm "${@:2}"
         ;;
       pnpx)
-        cmd_pnpx ${NDW_COMMAND_OPTIONS}
+        cmd_pnpx "${@:2}"
         ;;
       install-yarn)
-        cmd_install_yarn ${NDW_COMMAND_OPTIONS}
+        cmd_install_yarn "${@:2}"
         ;;
       install-pnpm)
-        cmd_install_pnpm ${NDW_COMMAND_OPTIONS}
+        cmd_install_pnpm "${@:2}"
         ;;
       current)
-        cmd_current ${NDW_COMMAND_OPTIONS}
+        cmd_current "${@:2}"
         ;;
       version)
-        cmd_version ${NDW_COMMAND_OPTIONS}
+        cmd_version "${@:2}"
         ;;
       *)
         usage_ndw

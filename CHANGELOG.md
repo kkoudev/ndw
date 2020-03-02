@@ -1,3 +1,9 @@
+# 1.6.1 (2020-03-02)
+
+### Fixed
+
+-   Timeout when the binary to download on slow network.
+
 # 1.6.0 (2020-02-18)
 
 ### Added
