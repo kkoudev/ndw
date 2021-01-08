@@ -6,7 +6,7 @@ set -e
 # Check required commands.
 #===========================================
 
-for CMD_NAME in curl awk
+for CMD_NAME in curl awk sed
 do
   if ! type ${CMD_NAME} > /dev/null 2>&1; then
     echo "Requires ${CMD_NAME} command."
@@ -37,7 +37,7 @@ done
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-readonly NDW_VERSION="1.6.1"
+readonly NDW_VERSION="1.6.2"
 readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 readonly NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
@@ -247,7 +247,7 @@ exec_command() {
   if [[ -n ${NODE_ENV_PATH} ]]; then
 
     # load environment variables
-    eval "$(awk -F'\n' '/^([^#.]+)/ {print "export " $1}' ${NODE_ENV_PATH})"
+    eval "$(sed -E 's;^(.+)=(.+)$;export \1=\2;g' ${NODE_ENV_PATH})"
 
   fi
 

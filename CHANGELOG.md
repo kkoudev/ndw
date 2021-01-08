@@ -1,3 +1,9 @@
+# 1.6.2 (2021-01-08)
+
+### Fixed
+
+-   Environment value included line break for .env.
+
 # 1.6.1 (2020-03-02)
 
 ### Fixed
