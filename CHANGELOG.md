@@ -1,3 +1,9 @@
+# 1.6.3 (2021-01-11)
+
+### Fixed
+
+-   Environment value included comments for .env.
+
 # 1.6.2 (2021-01-08)
 
 ### Fixed
