@@ -1,3 +1,14 @@
+# 2.0.0 (2021-05-15)
+
+### Added
+
+-   Support for arm64 binary. (Only supported since Node.js v16)
+
+### Removed
+
+-   c option of "install" command.
+-   wrapper commands.
+
 # 1.6.3 (2021-01-11)
 
 ### Fixed

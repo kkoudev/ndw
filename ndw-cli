@@ -37,7 +37,7 @@ done
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-readonly NDW_VERSION="1.6.3"
+readonly NDW_VERSION="2.0.0"
 readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 readonly NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
@@ -330,7 +330,6 @@ usage_ndw_install() {
 Usage: ${NDW_NAME} install [<args>] [<version>]
 
     -h            Show this message.
-    -c            Install current Node.js version.
     -s            Skip displaying prompt for reinstall specified version.
 EOF
 
@@ -364,21 +363,9 @@ cmd_install() {
   local CURRENT_VERSION=""
   local SKIP_REINSTALLED_VERSION=""
 
-  while getopts hcs OPTION "$@"
+  while getopts hs OPTION "$@"
   do
     case ${OPTION} in
-      c)
-        CURRENT_VERSION="$(find_version $(pwd))"
-
-        # Empty version?
-        if [[ -z ${CURRENT_VERSION} ]]; then
-          echo "No specify using Node.js version."
-          exit 1
-        fi
-
-        # specify current version as install version.
-        INSTALL_VERSION=${CURRENT_VERSION}
-        ;;
       s)
         SKIP_REINSTALLED_VERSION="y"
         ;;
@@ -390,7 +377,15 @@ cmd_install() {
   done
   shift $(($OPTIND - 1))
 
-  local INSTALL_VERSION=${CURRENT_VERSION:-"$1"}
+  local CURRENT_VERSION="$(find_version $(pwd))"
+  local INSTALL_VERSION=${1:-"${CURRENT_VERSION}"}
+
+  # Empty version?
+  if [[ -z ${INSTALL_VERSION} ]]; then
+    echo "No specify install Node.js version."
+    exit 1
+  fi
+
   local REMOTE_BINARY_URL="$(node_binary_url ${INSTALL_VERSION})"
   local BINARY_FILE_NAME="$(node_binary_file ${INSTALL_VERSION})"
   local DOWNLOAD_BINARY_PATH="${NDW_DOWNLOADS_DIR}/${BINARY_FILE_NAME}"

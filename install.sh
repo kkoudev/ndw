@@ -24,16 +24,10 @@ EOF
 # Entry point of install script.
 #===========================================
 
-INSTALL_DIR="/usr/local/bin"
+readonly INSTALL_DIR="/usr/local/bin"
 INSTALL_TAG="master"
-INSTALL_WRAPPER_COMMANDS=(
+INSTALL_NDW_COMMANDS=(
 ndw
-nodew
-npmw
-npxw
-yarnw
-pnpm
-pnpx
 )
 INSTALL_COMMANDS=(
 node
@@ -43,13 +37,16 @@ yarn
 pnpm
 pnpx
 )
+SUDO_ACCESS=""
 
-while getopts hrl OPTION "$@"
+# Apple Silicon?
+if [[ $(uname -s) == "Darwin" && $(uname -m) == "arm64" ]]; then
+  SUDO_ACCESS="sudo"
+fi
+
+while getopts v:h OPTION "$@"
 do
   case ${OPTION} in
-    d)
-      INSTALL_DIR="${OPTARG}"
-      ;;
     v)
       INSTALL_TAG="${OPTARG}"
       ;;
@@ -61,15 +58,15 @@ do
 done
 
 # Download cli script
-curl -s "https://raw.githubusercontent.com/kkoudev/ndw/${INSTALL_TAG}/ndw-cli" -o ${INSTALL_DIR}/ndw-cli
+${SUDO_ACCESS} curl -s "https://raw.githubusercontent.com/kkoudev/ndw/${INSTALL_TAG}/ndw-cli" -o ${INSTALL_DIR}/ndw-cli
 
 # Set executing mode
-chmod a+x ${INSTALL_DIR}/ndw-cli
+${SUDO_ACCESS} chmod a+x ${INSTALL_DIR}/ndw-cli
 
 # Creates symbolic links
-for CMD_NAME in ${INSTALL_WRAPPER_COMMANDS[@]}
+for CMD_NAME in ${INSTALL_NDW_COMMANDS[@]}
 do
-  ln -sf ${INSTALL_DIR}/ndw-cli ${INSTALL_DIR}/${CMD_NAME}
+  ${SUDO_ACCESS} ln -sf ${INSTALL_DIR}/ndw-cli ${INSTALL_DIR}/${CMD_NAME}
 done
 
 # Creates symbolic links for general commands
@@ -90,6 +87,6 @@ do
   fi
 
   # Creates symbolic link for general command
-  ln -sf ${INSTALL_DIR}/ndw-cli ${INSTALL_DIR}/${CMD_NAME}
+  ${SUDO_ACCESS} ln -sf ${INSTALL_DIR}/ndw-cli ${INSTALL_DIR}/${CMD_NAME}
 
 done
