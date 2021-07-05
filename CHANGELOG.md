@@ -1,3 +1,9 @@
+# 2.0.1 (2021-07-06)
+
+### Fixed
+
+-   PATH is overwritten in certain cases.
+
 # 2.0.0 (2021-05-15)
 
 ### Added

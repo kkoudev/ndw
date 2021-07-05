@@ -37,7 +37,7 @@ done
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-readonly NDW_VERSION="2.0.0"
+readonly NDW_VERSION="2.0.1"
 readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 readonly NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
@@ -238,7 +238,6 @@ exec_command() {
   local EXEC_COMMAND_ARGS="${@:3}"
   local NODE_ROOT="${NDW_VERSIONS_DIR}/${NODE_VERSION}"
   local NODE_BIN="${NODE_ROOT}/bin"
-  export PATH="${NODE_BIN}:${PATH}"
 
   # load envfile path
   local NODE_ENV_PATH=$(find_env_path ${CURRENT_DIR})
@@ -250,6 +249,9 @@ exec_command() {
     eval "$(sed -E '/^#/d;s;^(.+)=(.+)$;export \1=\2;g' ${NODE_ENV_PATH})"
 
   fi
+
+  # set node binary path
+  export PATH="${NODE_BIN}:${PATH}"
 
   # execute commands
   if type ${EXEC_COMMAND} > /dev/null 2>&1; then
