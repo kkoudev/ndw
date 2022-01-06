@@ -1,3 +1,9 @@
+# 2.0.2 (2022-01-06)
+
+### Fixed
+
+-   Cannot install binary on aarch64 for linux
+
 # 2.0.1 (2021-07-06)
 
 ### Fixed
