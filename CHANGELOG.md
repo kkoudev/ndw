@@ -1,3 +1,9 @@
+# 2.0.3 (2022-03-18)
+
+### Fixed
+
+-   Cannot install yarn if latest version in official website is differect latest version in npm repository.
+
 # 2.0.2 (2022-01-06)
 
 ### Fixed

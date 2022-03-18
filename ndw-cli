@@ -37,7 +37,7 @@ done
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-readonly NDW_VERSION="2.0.2"
+readonly NDW_VERSION="2.0.3"
 readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 readonly NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
@@ -670,7 +670,7 @@ cmd_install_yarn() {
     fi
 
     # Set using yarn version
-    USING_YARN_VERSION=${REMOTE_YARN_VERSION}
+    USING_YARN_VERSION="latest"
 
   fi
 
