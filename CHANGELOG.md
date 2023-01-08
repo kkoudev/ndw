@@ -1,3 +1,9 @@
+# 2.1.0 (2023-01-09)
+
+### Added
+
+-   Support for "corepack" command. Need to reinstall to use.
+
 # 2.0.3 (2022-03-18)
 
 ### Fixed

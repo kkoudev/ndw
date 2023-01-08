@@ -36,6 +36,7 @@ npx
 yarn
 pnpm
 pnpx
+corepack
 )
 SUDO_ACCESS=""
 

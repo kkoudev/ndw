@@ -37,7 +37,7 @@ done
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-readonly NDW_VERSION="2.0.3"
+readonly NDW_VERSION="2.1.0"
 readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 readonly NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
@@ -651,6 +651,15 @@ cmd_pnpx() {
 }
 
 #-------------------------------------------
+# corepack
+#-------------------------------------------
+cmd_corepack() {
+
+  exec_command "$(find_version $(pwd))" corepack "$@"
+
+}
+
+#-------------------------------------------
 # install-yarn
 #-------------------------------------------
 cmd_install_yarn() {
@@ -676,6 +685,9 @@ cmd_install_yarn() {
 
   # Install latest yarn.
   exec_command "${NODE_VERSION}" npm i -g yarn@${USING_YARN_VERSION}
+
+  # Create symbolic link
+  ln -s 
 
 }
 
@@ -782,6 +794,9 @@ case ${NDW_NAME} in
       pnpx)
         cmd_pnpx "${@:2}"
         ;;
+      corepack)
+        cmd_corepack "${@:2}"
+        ;;
       install-yarn)
         cmd_install_yarn "${@:2}"
         ;;
@@ -799,23 +814,26 @@ case ${NDW_NAME} in
         ;;
     esac
     ;;
-  nodew|node)
+  node)
     cmd_node "$@"
     ;;
-  npmw|npm)
+  npm)
     cmd_npm "$@"
     ;;
-  npxw|npx)
+  npx)
     cmd_npx "$@"
     ;;
-  yarnw|yarn)
+  yarn)
     cmd_yarn "$@"
     ;;
-  pnpmw|pnpm)
+  pnpm)
     cmd_pnpm "$@"
     ;;
-  pnpxw|pnpx)
+  pnpx)
     cmd_pnpx "$@"
+    ;;
+  corepack)
+    cmd_corepack "$@"
     ;;
   *)
     echo "Illegal command executed."
