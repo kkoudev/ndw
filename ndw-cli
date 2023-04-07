@@ -686,9 +686,6 @@ cmd_install_yarn() {
   # Install latest yarn.
   exec_command "${NODE_VERSION}" npm i -g yarn@${USING_YARN_VERSION}
 
-  # Create symbolic link
-  ln -s 
-
 }
 
 #-------------------------------------------
