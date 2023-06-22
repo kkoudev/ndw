@@ -1,3 +1,9 @@
+# 3.0.0 (2023-06-22)
+
+### Changed
+
+-   auto install specified version and package managers if no installed specified version.
+
 # 2.1.1 (2023-04-07)
 
 ### Fixed
