@@ -37,7 +37,7 @@ done
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-readonly NDW_VERSION="3.0.0"
+readonly NDW_VERSION="3.0.1"
 readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 readonly NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
@@ -238,7 +238,6 @@ exec_command() {
 
   local CURRENT_DIR="$(pwd)"
   local EXEC_COMMAND=$2
-  local EXEC_COMMAND_ARGS="${@:3}"
   local NODE_ROOT="${NDW_VERSIONS_DIR}/${NODE_VERSION}"
   local NODE_BIN="${NODE_ROOT}/bin"
 
@@ -264,7 +263,7 @@ exec_command() {
     # If exec command and this cli path are different?
     if [[ ${EXEC_REAL_PATH} != ${NDW_CLI_PATH} ]]; then
 
-      "${EXEC_COMMAND}" ${EXEC_COMMAND_ARGS}
+      "${EXEC_COMMAND}" "${@:3}"
       return $?
 
     fi
