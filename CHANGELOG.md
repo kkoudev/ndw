@@ -1,3 +1,9 @@
+# 3.0.2 (2023-08-15)
+
+### Fixed
+
+-   Revert auto install package managers.
+
 # 3.0.1 (2023-07-18)
 
 ### Fixed
