@@ -136,15 +136,11 @@ ndw exec sls --version
 ndw node
 ```
 
-There is alias command as "nodew".
-
 ### Execute npm command in current Node.js version.
 
 ```
 ndw npm
 ```
-
-There is alias command as "npmw".
 
 ### Execute npx command in current Node.js version.
 
@@ -152,15 +148,11 @@ There is alias command as "npmw".
 ndw npx
 ```
 
-There is alias command as "npxw".
-
 ### Execute yarn command in current Node.js version.
 
 ```
 ndw yarn
 ```
-
-There is alias command as "yarnw".
 
 ### Install or upgrade yarn in current Node.js version.
 
