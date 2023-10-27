@@ -4,6 +4,8 @@
 # Usages.
 #===========================================
 
+set -e
+
 #-------------------------------------------
 # View usage install options.
 #-------------------------------------------
@@ -13,7 +15,6 @@ usage() {
 Usage: ${0##*/} [<args>]
 
     -h            Show this message.
-    -d <dir>      Set install directory.
     -v <version>  Set install version.
 EOF
 
@@ -24,12 +25,13 @@ EOF
 # Entry point of install script.
 #===========================================
 
-readonly INSTALL_DIR="/usr/local/bin"
+readonly INSTALL_DIR="$HOME/.ndw/bin"
+readonly SHELL_NAME="${SHELL##*/}"
 INSTALL_TAG="master"
 INSTALL_NDW_COMMANDS=(
 ndw
 )
-INSTALL_COMMANDS=(
+INSTALL_ALIAS_COMMANDS=(
 node
 npm
 npx
@@ -38,12 +40,20 @@ pnpm
 pnpx
 corepack
 )
+INSTALL_SHELL_CONFIG_PATH=""
+INSTALL_SHELL_CONFIG_BEGIN="## ndw BEGIN"
+INSTALL_SHELL_CONFIG_END="## ndw END"
+INSTALL_SHELL_CONFIG_BODY=""
 SUDO_ACCESS=""
 
-# Apple Silicon?
-if [[ $(uname -s) == "Darwin" && $(uname -m) == "arm64" ]]; then
-  SUDO_ACCESS="sudo"
+# Not exists install directory
+if [[ ! -e ${INSTALL_DIR} ]]; then
+  # create install directory
+  mkdir -p "${INSTALL_DIR}"
 fi
+
+# Require sudo access?
+test -w "${INSTALL_DIR}" || SUDO_ACCESS="sudo"
 
 while getopts v:h OPTION "$@"
 do
@@ -71,7 +81,7 @@ do
 done
 
 # Creates symbolic links for general commands
-for CMD_NAME in ${INSTALL_COMMANDS[@]}
+for CMD_NAME in ${INSTALL_ALIAS_COMMANDS[@]}
 do
 
   if [[ -e ${INSTALL_DIR}/${CMD_NAME} ]]; then
@@ -91,3 +101,51 @@ do
   ${SUDO_ACCESS} ln -sf ${INSTALL_DIR}/ndw-cli ${INSTALL_DIR}/${CMD_NAME}
 
 done
+
+# Install shellenv
+case "${SHELL_NAME}" in
+bash)
+  INSTALL_SHELL_CONFIG_PATH="$HOME/.bash_profile"
+  INSTALL_SHELL_CONFIG_BODY=$(cat << EOF
+eval "$(\$HOME/.ndw/bin/ndw shellenv)"
+EOF
+)
+  ;;
+
+zsh)
+  INSTALL_SHELL_CONFIG_PATH="$HOME/.zshrc"
+  INSTALL_SHELL_CONFIG_BODY=$(cat << EOF
+eval "$(\$HOME/.ndw/bin/ndw shellenv)"
+EOF
+)
+  ;;
+
+fish)
+  INSTALL_SHELL_CONFIG_PATH="$HOME/.config/fish/config.fish"
+  INSTALL_SHELL_CONFIG_BODY=$(cat << EOF
+\$HOME/.ndw/bin/ndw shellenv | source
+EOF
+)
+  ;;
+
+*)
+  echo "Not supported shell command for ${SHELL_NAME}"
+  ;;
+esac
+
+SHELL_CONFIG_DIR="${INSTALL_SHELL_CONFIG_PATH%/*}"
+if [[ ! -e ${SHELL_CONFIG_DIR} ]]; then
+  mkdir -p ${SHELL_CONFIG_DIR}
+fi
+
+if [[ ! -e ${INSTALL_SHELL_CONFIG_PATH} ]]; then
+  touch "${INSTALL_SHELL_CONFIG_PATH}"
+fi
+
+if ! grep -q "${INSTALL_SHELL_CONFIG_BEGIN}" ${INSTALL_SHELL_CONFIG_PATH}; then
+  echo -n -e "\n" >> ${INSTALL_SHELL_CONFIG_PATH}
+  echo "${INSTALL_SHELL_CONFIG_BEGIN}" >> ${INSTALL_SHELL_CONFIG_PATH}
+  echo "${INSTALL_SHELL_CONFIG_BODY}" >> ${INSTALL_SHELL_CONFIG_PATH}
+  echo "${INSTALL_SHELL_CONFIG_END}" >> ${INSTALL_SHELL_CONFIG_PATH}
+  exec ${SHELL_NAME} -l
+fi
