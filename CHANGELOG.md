@@ -2,8 +2,12 @@
 
 ### BREAKING CHANGES
 
+-   Change install directory to "$HOME/.ndw". Need to reinstall ndw.
+
+### Added
+
 -   Support for "system" Node.js version.
--   Change install directory to "$HOME/.ndw".
+-   Support for "shellenv" command.
 
 # 3.0.2 (2023-08-15)
 

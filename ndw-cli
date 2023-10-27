@@ -401,11 +401,17 @@ cmd_shellenv() {
   fish)
     echo 'set -gx NDW_HOME "$HOME/.ndw";'
     echo '! set -q PATH; and set PATH ''; set -gx PATH "$HOME/.ndw/bin" $PATH;'
+    if [[ -n ${GITHUB_ACTIONS} ]]; then
+      echo 'echo "$HOME/.ndw/bin" >> $GITHUB_PATH'
+    fi
     ;;
 
   zsh|bash)
     echo 'export NDW_HOME="$HOME/.ndw"'
     echo 'export PATH="$HOME/.ndw/bin${PATH+:$PATH}"'
+    if [[ -n ${GITHUB_ACTIONS} ]]; then
+      echo 'echo "$HOME/.ndw/bin" >> $GITHUB_PATH'
+    fi
     ;;
 
   *)
