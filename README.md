@@ -14,7 +14,7 @@ bash <(curl -s https://raw.githubusercontent.com/kkoudev/ndw/master/install.sh)
 bash (curl -s https://raw.githubusercontent.com/kkoudev/ndw/master/install.sh | psub)
 ```
 
-Please add "/usr/local/bin" to global PATH if not included "/usr/local/bin" in global PATH.
+Add "$HOME/.ndw/bin" to global PATH automatically.
 
 ## Uninstallation
 
@@ -84,7 +84,7 @@ ndw list -l
 ### Set Node.js local version
 
 ```
-ndw local [<version>]
+ndw local [<version> or "system"]
 ```
 
 This command creates ".node-version" file in current directory.
@@ -93,7 +93,7 @@ Show current local version if no specify version.
 ### Set Node.js global version
 
 ```
-ndw global [<version>]
+ndw global [<version> or "system"]
 ```
 
 This command creates global Node.js version file.

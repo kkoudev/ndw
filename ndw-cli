@@ -24,11 +24,13 @@ done
 #
 # NDW_VERSION                 : NDW version.
 # NDW_ROOT                    : NDW root directory.
+# NDW_BIN_DIR                 : NDW bin directory.
 # NDW_VERSIONS_DIR            : Node.js root directory per version.
 # NDW_DOWNLOADS_DIR           : NDW downloading directory.
 # NDW_NAME                    : NDW command name.
 # NDW_CLI_PATH                : NDW file path (this file path)
 # NDW_DOWNLOADS_TIMEOUT       : NDW file download timeout (seconds)
+# NDW_VERSION_NAME_SYSTEM     : NDW system version name.
 # NODE_TAGS_URL               : Node.js repository tags URL.
 # NODE_VERSION_FILE           : Node.js version file name.
 # NODE_ENV_FILE               : Node.js environment variable definitions file name.
@@ -37,13 +39,15 @@ done
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-readonly NDW_VERSION="3.0.2"
+readonly NDW_VERSION="4.0.0"
 readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
+readonly NDW_BIN_DIR="${NDW_ROOT}/bin"
 readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
 readonly NDW_DOWNLOADS_DIR="${NDW_ROOT}/downloads"
 readonly NDW_NAME=${0##*/}
 readonly NDW_CLI_PATH=$(printf "$0" | xargs readlink)
 readonly NDW_DOWNLOADS_TIMEOUT=3600
+readonly NDW_VERSION_NAME_SYSTEM="system"
 readonly NODE_TAGS_URL="https://nodejs.org/dist/"
 readonly NODE_VERSION_FILE=".node-version"
 readonly NODE_ENV_FILE=".env"
@@ -99,10 +103,15 @@ find_version() {
   local NODE_VERSION="$(find_local_version ${DIR_PATH})"
 
   # Empty version?
-  if [ -z "${NODE_VERSION}" -a -e "${NDW_ROOT}/${NODE_GLOBAL_VERSION_FILE}" ]; then
+  if [[ -z "${NODE_VERSION}" && -e "${NDW_ROOT}/${NODE_GLOBAL_VERSION_FILE}" ]]; then
 
     # using global version
     NODE_VERSION="$(cat_file ${NDW_ROOT} ${NODE_GLOBAL_VERSION_FILE})"
+
+  else
+
+    # using system version
+    NODE_VERSION="${NDW_VERSION_NAME_SYSTEM}"
 
   fi
 
@@ -132,6 +141,28 @@ find_env_path() {
   else
     echo -n ""
   fi
+
+}
+
+#-------------------------------------------
+# Output system node binary path.
+#-------------------------------------------
+find_system_node_dir_path() {
+
+  local NODE_PATHS=($(which -a node))
+  local SELECT_NODE_PATH=""
+
+  for NODE_PATH in ${NODE_PATHS[@]}
+  do
+    if [[ "${NDW_BIN_DIR}/node" == "${NODE_PATH}" ]]; then
+      continue;
+    fi
+
+    SELECT_NODE_PATH=${NODE_PATH}
+    break
+  done
+
+  echo -n "${SELECT_NODE_PATH%/*}"
 
 }
 
@@ -231,15 +262,13 @@ exec_command() {
   fi
 
   # No installed specified version?
-  if [[ ! -e "${NDW_VERSIONS_DIR}/${NODE_VERSION}" ]]; then
+  if [[ ! -e "${NDW_VERSIONS_DIR}/${NODE_VERSION}" && "${NODE_VERSION}" != "${NDW_VERSION_NAME_SYSTEM}" ]]; then
     # auto install specified version
     cmd_install "${NODE_VERSION}"
   fi
 
   local CURRENT_DIR="$(pwd)"
   local EXEC_COMMAND=$2
-  local NODE_ROOT="${NDW_VERSIONS_DIR}/${NODE_VERSION}"
-  local NODE_BIN="${NODE_ROOT}/bin"
 
   # load envfile path
   local NODE_ENV_PATH=$(find_env_path ${CURRENT_DIR})
@@ -250,6 +279,13 @@ exec_command() {
     # load environment variables
     eval "$(sed -E '/^#/d;s;^(.+)=(.+)$;export \1=\2;g' ${NODE_ENV_PATH})"
 
+  fi
+
+  if [[ "${NODE_VERSION}" == "${NDW_VERSION_NAME_SYSTEM}" ]]; then
+    local NODE_BIN=$(find_system_node_dir_path)
+  else 
+    local NODE_ROOT="${NDW_VERSIONS_DIR}/${NODE_VERSION}"
+    local NODE_BIN="${NODE_ROOT}/bin"
   fi
 
   # set node binary path
@@ -358,6 +394,31 @@ EOF
 #===========================================
 # Sub commands of ndw.
 #===========================================
+
+#-------------------------------------------
+# shellenv
+#-------------------------------------------
+cmd_shellenv() {
+
+  local SHELL_NAME="${1:-${SHELL##*/}}"
+
+  case "${SHELL_NAME}" in
+  fish)
+    echo 'set -gx NDW_HOME "$HOME/.ndw";'
+    echo '! set -q PATH; and set PATH ''; set -gx PATH "$HOME/.ndw/bin" $PATH;'
+    ;;
+
+  zsh|bash)
+    echo 'export NDW_HOME="$HOME/.ndw"'
+    echo 'export PATH="$HOME/.ndw/bin${PATH+:$PATH}"'
+    ;;
+
+  *)
+    echo "Not supported shell command for ${SHELL_NAME}"
+    ;;
+  esac
+
+}
 
 #-------------------------------------------
 # install
@@ -511,7 +572,7 @@ cmd_local() {
   fi
 
   # No installed specified version?
-  if [[ ! -e "${NDW_VERSIONS_DIR}/${USING_VERSION}" ]]; then
+  if [[ ! -e "${NDW_VERSIONS_DIR}/${USING_VERSION}" && "${USING_VERSION}" != "${NDW_VERSION_NAME_SYSTEM}" ]]; then
     echo "No installed specified version."
     exit 1
   fi
@@ -540,15 +601,15 @@ cmd_global() {
 
     else
 
-      echo "No specify global version."
-      exit 1
+      echo "${NDW_VERSION_NAME_SYSTEM}"
+      exit 0
 
     fi
 
   fi
 
   # No installed specified version?
-  if [[ ! -e "${NDW_VERSIONS_DIR}/${USING_VERSION}" ]]; then
+  if [[ ! -e "${NDW_VERSIONS_DIR}/${USING_VERSION}" && "${USING_VERSION}" != "${NDW_VERSION_NAME_SYSTEM}" ]]; then
     echo "No installed specified version."
     exit 1
   fi
@@ -751,6 +812,9 @@ case ${NDW_NAME} in
   ndw)
     # Operations per command.
     case "$1" in
+      shellenv)
+        cmd_shellenv "${@:2}"
+        ;;
       install)
         cmd_install "${@:2}"
         ;;

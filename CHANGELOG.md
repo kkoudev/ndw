@@ -1,3 +1,10 @@
+# 4.0.0 (2023-10-27)
+
+### BREAKING CHANGES
+
+-   Support for "system" Node.js version.
+-   Change install directory to "$HOME/.ndw".
+
 # 3.0.2 (2023-08-15)
 
 ### Fixed
