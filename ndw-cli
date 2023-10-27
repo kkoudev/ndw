@@ -108,11 +108,6 @@ find_version() {
     # using global version
     NODE_VERSION="$(cat_file ${NDW_ROOT} ${NODE_GLOBAL_VERSION_FILE})"
 
-  else
-
-    # using system version
-    NODE_VERSION="${NDW_VERSION_NAME_SYSTEM}"
-
   fi
 
   echo -n "${NODE_VERSION}"
@@ -257,8 +252,8 @@ exec_command() {
 
   # Empty version?
   if [[ -z ${NODE_VERSION} ]]; then
-    echo "No specify using Node.js version."
-    exit 1
+    # use system version
+    NODE_VERSION="${NDW_VERSION_NAME_SYSTEM}"
   fi
 
   # No installed specified version?

@@ -26,11 +26,12 @@ EOF
 #===========================================
 
 readonly INSTALL_DIR="$HOME/.ndw/bin"
+readonly CLI_INSTALL_DIR="/usr/local/bin"
+readonly CLI_INSTALL_NAME="ndw"
+readonly ESCAPE_INSTALL_DIR='$HOME/.ndw/bin'
+readonly ESCAPE_CLI_INSTALL_DIR='/usr/local/bin'
 readonly SHELL_NAME="${SHELL##*/}"
 INSTALL_TAG="master"
-INSTALL_NDW_COMMANDS=(
-ndw
-)
 INSTALL_ALIAS_COMMANDS=(
 node
 npm
@@ -41,8 +42,8 @@ pnpx
 corepack
 )
 INSTALL_SHELL_CONFIG_PATH=""
-INSTALL_SHELL_CONFIG_BEGIN="## ndw BEGIN"
-INSTALL_SHELL_CONFIG_END="## ndw END"
+INSTALL_SHELL_CONFIG_BEGIN="## ${CLI_INSTALL_NAME} BEGIN"
+INSTALL_SHELL_CONFIG_END="## ${CLI_INSTALL_NAME} END"
 INSTALL_SHELL_CONFIG_BODY=""
 SUDO_ACCESS=""
 
@@ -51,9 +52,6 @@ if [[ ! -e ${INSTALL_DIR} ]]; then
   # create install directory
   mkdir -p "${INSTALL_DIR}"
 fi
-
-# Require sudo access?
-test -w "${INSTALL_DIR}" || SUDO_ACCESS="sudo"
 
 while getopts v:h OPTION "$@"
 do
@@ -68,17 +66,17 @@ do
   esac
 done
 
+# Require sudo access?
+test -w "${CLI_INSTALL_DIR}" || SUDO_ACCESS="sudo"
+if [[ -n ${SUDO_ACCESS} ]]; then
+  echo "Please input your sudo password."
+fi
+
 # Download cli script
-${SUDO_ACCESS} curl -s "https://raw.githubusercontent.com/kkoudev/ndw/${INSTALL_TAG}/ndw-cli" -o ${INSTALL_DIR}/ndw-cli
+${SUDO_ACCESS} curl -s "https://raw.githubusercontent.com/kkoudev/ndw/${INSTALL_TAG}/ndw-cli" -o ${CLI_INSTALL_DIR}/${CLI_INSTALL_NAME}
 
 # Set executing mode
-${SUDO_ACCESS} chmod a+x ${INSTALL_DIR}/ndw-cli
-
-# Creates symbolic links
-for CMD_NAME in ${INSTALL_NDW_COMMANDS[@]}
-do
-  ${SUDO_ACCESS} ln -sf ${INSTALL_DIR}/ndw-cli ${INSTALL_DIR}/${CMD_NAME}
-done
+${SUDO_ACCESS} chmod a+x ${CLI_INSTALL_DIR}/${CLI_INSTALL_NAME}
 
 # Creates symbolic links for general commands
 for CMD_NAME in ${INSTALL_ALIAS_COMMANDS[@]}
@@ -88,7 +86,7 @@ do
 
     # Not ndw-cli command?
     if [[ ! -L ${INSTALL_DIR}/${CMD_NAME} \
-         || (-L ${INSTALL_DIR}/${CMD_NAME} && $(readlink ${INSTALL_DIR}/${CMD_NAME} | tr -d '\n') != ${INSTALL_DIR}/ndw-cli) ]]; then
+         || (-L ${INSTALL_DIR}/${CMD_NAME} && $(readlink ${INSTALL_DIR}/${CMD_NAME} | tr -d '\n') != ${CLI_INSTALL_DIR}/${CLI_INSTALL_NAME}) ]]; then
 
       read -p "Overwrite already installed \"${CMD_NAME}\" command? (y/N) : " CONTINUE_INSTALL
       [[ $(printf "${CONTINUE_INSTALL}" | tr '[:upper:]' '[:lower:]') != "y" ]] && continue
@@ -98,7 +96,7 @@ do
   fi
 
   # Creates symbolic link for general command
-  ${SUDO_ACCESS} ln -sf ${INSTALL_DIR}/ndw-cli ${INSTALL_DIR}/${CMD_NAME}
+  ${SUDO_ACCESS} ln -sf ${CLI_INSTALL_DIR}/${CLI_INSTALL_NAME} ${INSTALL_DIR}/${CMD_NAME}
 
 done
 
@@ -107,7 +105,7 @@ case "${SHELL_NAME}" in
 bash)
   INSTALL_SHELL_CONFIG_PATH="$HOME/.bash_profile"
   INSTALL_SHELL_CONFIG_BODY=$(cat << EOF
-eval "$(\$HOME/.ndw/bin/ndw shellenv)"
+eval "$(${ESCAPE_CLI_INSTALL_DIR}/${CLI_INSTALL_NAME} shellenv)"
 EOF
 )
   ;;
@@ -115,7 +113,7 @@ EOF
 zsh)
   INSTALL_SHELL_CONFIG_PATH="$HOME/.zshrc"
   INSTALL_SHELL_CONFIG_BODY=$(cat << EOF
-eval "$(\$HOME/.ndw/bin/ndw shellenv)"
+eval "$(${ESCAPE_CLI_INSTALL_DIR}/${CLI_INSTALL_NAME} shellenv)"
 EOF
 )
   ;;
@@ -123,7 +121,7 @@ EOF
 fish)
   INSTALL_SHELL_CONFIG_PATH="$HOME/.config/fish/config.fish"
   INSTALL_SHELL_CONFIG_BODY=$(cat << EOF
-\$HOME/.ndw/bin/ndw shellenv | source
+${ESCAPE_CLI_INSTALL_DIR}/${CLI_INSTALL_NAME} shellenv | source
 EOF
 )
   ;;
@@ -147,5 +145,4 @@ if ! grep -q "${INSTALL_SHELL_CONFIG_BEGIN}" ${INSTALL_SHELL_CONFIG_PATH}; then
   echo "${INSTALL_SHELL_CONFIG_BEGIN}" >> ${INSTALL_SHELL_CONFIG_PATH}
   echo "${INSTALL_SHELL_CONFIG_BODY}" >> ${INSTALL_SHELL_CONFIG_PATH}
   echo "${INSTALL_SHELL_CONFIG_END}" >> ${INSTALL_SHELL_CONFIG_PATH}
-  exec ${SHELL_NAME} -l
 fi
