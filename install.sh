@@ -82,19 +82,6 @@ ${SUDO_ACCESS} chmod a+x ${CLI_INSTALL_DIR}/${CLI_INSTALL_NAME}
 for CMD_NAME in ${INSTALL_ALIAS_COMMANDS[@]}
 do
 
-  if [[ -e ${INSTALL_DIR}/${CMD_NAME} ]]; then
-
-    # Not ndw-cli command?
-    if [[ ! -L ${INSTALL_DIR}/${CMD_NAME} \
-         || (-L ${INSTALL_DIR}/${CMD_NAME} && $(readlink ${INSTALL_DIR}/${CMD_NAME} | tr -d '\n') != ${CLI_INSTALL_DIR}/${CLI_INSTALL_NAME}) ]]; then
-
-      read -p "Overwrite already installed \"${CMD_NAME}\" command? (y/N) : " CONTINUE_INSTALL
-      [[ $(printf "${CONTINUE_INSTALL}" | tr '[:upper:]' '[:lower:]') != "y" ]] && continue
-
-    fi
-
-  fi
-
   # Creates symbolic link for general command
   ${SUDO_ACCESS} ln -sf ${CLI_INSTALL_DIR}/${CLI_INSTALL_NAME} ${INSTALL_DIR}/${CMD_NAME}
 
@@ -146,3 +133,5 @@ if ! grep -q "${INSTALL_SHELL_CONFIG_BEGIN}" ${INSTALL_SHELL_CONFIG_PATH}; then
   echo "${INSTALL_SHELL_CONFIG_BODY}" >> ${INSTALL_SHELL_CONFIG_PATH}
   echo "${INSTALL_SHELL_CONFIG_END}" >> ${INSTALL_SHELL_CONFIG_PATH}
 fi
+
+eval "$(${CLI_INSTALL_DIR}/${CLI_INSTALL_NAME} shellenv bash)"

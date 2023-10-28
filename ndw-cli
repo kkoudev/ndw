@@ -395,10 +395,14 @@ EOF
 #-------------------------------------------
 cmd_shellenv() {
 
-  local SHELL_NAME="${1:-${SHELL##*/}}"
+  if [[ -n "$1" ]]; then
+    local SHELL_NAME="$1"
+  else
+    local SHELL_NAME="$(/bin/ps -p "${PPID}" -c -o comm=)"
+  fi
 
   case "${SHELL_NAME}" in
-  fish)
+  fish | -fish)
     echo 'set -gx NDW_HOME "$HOME/.ndw";'
     echo '! set -q PATH; and set PATH ''; set -gx PATH "$HOME/.ndw/bin" $PATH;'
     if [[ -n ${GITHUB_ACTIONS} ]]; then
@@ -406,7 +410,7 @@ cmd_shellenv() {
     fi
     ;;
 
-  zsh|bash)
+  zsh | -zsh | bash | -bash)
     echo 'export NDW_HOME="$HOME/.ndw"'
     echo 'export PATH="$HOME/.ndw/bin${PATH+:$PATH}"'
     if [[ -n ${GITHUB_ACTIONS} ]]; then
