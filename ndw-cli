@@ -39,7 +39,7 @@ done
 # NODE_BINARY_FILE_FORMAT     : Node.js binary file name format.
 # NODE_BINARY_URL_FORMAT      : Node.js binary url format.
 #-------------------------------------------
-readonly NDW_VERSION="4.0.0"
+readonly NDW_VERSION="4.0.1"
 readonly NDW_ROOT=${NDW_ROOT:-"$HOME/.ndw"}
 readonly NDW_BIN_DIR="${NDW_ROOT}/bin"
 readonly NDW_VERSIONS_DIR="${NDW_ROOT}/versions"
@@ -215,7 +215,7 @@ node_binary_url() {
 #-------------------------------------------
 sort_versions() {
 
-  cat - | awk '{gsub("v", ""); print $0;}' | sort -t "." -k 1n -k 2n -k 3n | awk '{print "v" $1}'
+  cat - | awk '{gsub("v", ""); print $0;}' | sort -V
 
 }
 

@@ -1,3 +1,9 @@
+# 4.0.1 (2024-12-25)
+
+### Fixed
+
+-   Incorrect gvw list sorted result of versions.
+
 # 4.0.0 (2023-10-27)
 
 ### BREAKING CHANGES
